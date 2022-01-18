@@ -1,5 +1,7 @@
 package com.example.mycountdowntimer
 
+import android.media.AudioAttributes
+import android.media.SoundPool
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -8,6 +10,8 @@ import com.example.mycountdowntimer.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var soundPool: SoundPool
+    private var soundResId = 0
 
     // innerをつけることで、外部クラスのbindingを使えるようになる
     inner class MyCountDownTimer(millisInFuture: Long,
@@ -22,6 +26,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onFinish() {
             binding.timerText.text = "0:00"
+            soundPool.play(soundResId, 1.0f, 100f, 0, 0, 1.0f)
         }
     }
 
@@ -32,17 +37,42 @@ class MainActivity : AppCompatActivity() {
         setupTimer()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // SoundPoolのインスタンスを作成
+        // runはletとwithの両方の特徴を持つ
+        // 対象オブジェクトをthisで参照でき、戻り値はラムダ式の最後の値
+        soundPool = SoundPool.Builder().run {
+
+            val audioAttributes = AudioAttributes.Builder().run {
+                // あえてthisを書いてみた
+                this.setUsage(AudioAttributes.USAGE_ALARM)
+                // 設定された属性を組み合わせた新しいAudioAttributesのインスタンスを生成する
+                this.build()
+            }
+            setMaxStreams(1)
+            setAudioAttributes(audioAttributes)
+            build()
+        }
+        soundResId = soundPool.load(this, R.raw.bellsound, 1)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        soundPool.release()
+    }
+
     private fun setupBinding() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
     }
 
     private fun setupText() {
-        binding.timerText.text = "3:00"
+        binding.timerText.text = "0:05"
     }
 
     private fun setupTimer() {
-        var timer = MyCountDownTimer(3 * 60 * 1000, 100)
+        var timer = MyCountDownTimer(1 * 5 * 1000, 100)
         binding.playStop.setOnClickListener {
             timer.isRunning = when(timer.isRunning) {
                 true -> {
