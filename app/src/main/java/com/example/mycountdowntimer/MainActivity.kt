@@ -5,6 +5,9 @@ import android.media.SoundPool
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.view.View
+import android.widget.AdapterView
+import android.widget.Spinner
 import com.example.mycountdowntimer.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -12,6 +15,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var soundPool: SoundPool
     private var soundResId = 0
+    var timer = MyCountDownTimer(1 * 5 * 1000, 100)
 
     // innerをつけることで、外部クラスのbindingを使えるようになる
     inner class MyCountDownTimer(millisInFuture: Long,
@@ -35,6 +39,7 @@ class MainActivity : AppCompatActivity() {
         setupBinding()
         setupText()
         setupTimer()
+        setupSpinner()
     }
 
     override fun onResume() {
@@ -71,13 +76,16 @@ class MainActivity : AppCompatActivity() {
         binding.timerText.text = "0:05"
     }
 
+    private fun setPlayArrowButton() {
+        binding.playStop.setImageResource(R.drawable.ic_baseline_play_arrow_24)
+    }
+
     private fun setupTimer() {
-        var timer = MyCountDownTimer(1 * 5 * 1000, 100)
         binding.playStop.setOnClickListener {
             timer.isRunning = when(timer.isRunning) {
                 true -> {
                     timer.cancel()
-                    binding.playStop.setImageResource(R.drawable.ic_baseline_play_arrow_24)
+                    setPlayArrowButton()
                     false
                 }
                 false -> {
@@ -87,6 +95,32 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun setupSpinner() {
+        // オブジェクト式
+        // object: 継承するクラス名、または実装するインターフェイス名 { クラスの定義 }
+        // https://dogwood008.github.io/kotlin-web-site-ja/docs/reference/object-declarations.html
+        binding.spinner.onItemSelectedListener =
+            object: AdapterView.OnItemSelectedListener {
+
+                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                    timer.cancel()
+                    setPlayArrowButton()
+                    val item = binding.spinner.selectedItem as? String
+                    item?.let {
+                        if (it.isNotEmpty()) binding.timerText.text = it
+                        val times = it.split(":")
+                        val min = times[0].toLong()
+                        val sec = times[1].toLong()
+                        val mil = (min * 60 + sec) * 1000
+                        timer = MyCountDownTimer(mil, 100)
+                    }
+                }
+
+                override fun onNothingSelected(p0: AdapterView<*>?) { }
+
+            }
     }
 
 }
