@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.View
 import android.widget.AdapterView
+import android.widget.SeekBar
 import android.widget.Spinner
 import com.example.mycountdowntimer.databinding.ActivityMainBinding
 
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         setupText()
         setupTimer()
         setupSpinner()
+        setupSeekBar()
     }
 
     override fun onResume() {
@@ -121,6 +123,27 @@ class MainActivity : AppCompatActivity() {
                 override fun onNothingSelected(p0: AdapterView<*>?) { }
 
             }
+    }
+
+    private fun setupSeekBar() {
+
+        binding.seekBar.setOnSeekBarChangeListener(
+            object: SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
+                    timer.cancel()
+                    setPlayArrowButton()
+                    val min = p1 / 60L // Long型
+                    val sec = p1 % 60L
+                    binding.timerText.text = "%1d:%2$02d".format(min, sec)
+                    val mil = p1 * 1000L
+                    timer = MyCountDownTimer(mil, 100)
+                }
+
+                override fun onStartTrackingTouch(p0: SeekBar?) { }
+                override fun onStopTrackingTouch(p0: SeekBar?) { }
+            }
+        )
+
     }
 
 }
